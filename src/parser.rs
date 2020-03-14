@@ -1,12 +1,15 @@
 use std::usize;
 use std::str::FromStr;
 use crate::roll::Roll;
+use std::panic::catch_unwind;
 
 pub fn parse(expr: &str) -> Option<Roll> {
-    expression
-        .parse(expr)
-        .map(|(_, d)| d)
-        .ok()
+    catch_unwind(|| {
+        expression
+            .parse(expr)
+            .map(|(_, d)| d)
+            .ok()
+    }).unwrap_or(None)
 }
 
 type ParseResult<'a, Output> = Result<(&'a str, Output), &'a str>;
@@ -482,5 +485,11 @@ mod tests {
             Static(123),
             Roll::grp(Roll::mul(Dice { times: 3, sides: 20 }, Static(456))));
         assert_eq!(division("123 / (3d20 * 456)"), Ok(("", expected)));
+    }
+
+    #[test]
+    fn test_massive() {
+        let res = parse("d99999999999999999999");
+        assert!(res.is_none());
     }
 }

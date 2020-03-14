@@ -2,6 +2,7 @@ use telegram_bot::*;
 
 use crate::parser::parse;
 use crate::roll::RollResult;
+use std::panic::catch_unwind;
 
 const START_MSG: &str = "Let *Dice Goblin* roll for you!
 
@@ -71,11 +72,11 @@ pub async fn handle(api: &Api, update: Update) -> Result<(), Error> {
             api.send(req).await
         }
         Command::Roll(offset) => {
-            match parse(&txt[offset..]) {
-                Some(d) => {
-                    let res: RollResult = (&d).into();
-                    api.send(msg.text_reply(format!("{}", res))).await
-                }
+            let res: Option<RollResult> = parse(&txt[offset..])
+                .and_then(|r| catch_unwind(|| (&r).into()).ok());
+
+            match res {
+                Some(res) => api.send(msg.text_reply(format!("{}", res))).await,
                 None => {
                     let mut req = msg.text_reply(ROLL_ERR_MSG);
                     req.parse_mode(ParseMode::Markdown);
