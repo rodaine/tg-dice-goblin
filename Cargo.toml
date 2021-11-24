@@ -1,14 +1,18 @@
 [package]
 name = "tg-dice-goblin"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Chris Roche <github@rodaine.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-futures = "0.3.4"
-tokio = { version = "0.2.13", features = ["full"] }
-telegram-bot = { git = "https://github.com/telegram-rs/telegram-bot" }
+futures = "0.3"
+tokio = { version = "1.2", features = ["fs", "rt", "macros", "rt-multi-thread"]}
+
+telegram-bot = { git = "https://github.com/telegram-rs/telegram-bot", rev = "65ad5cfd578e9a1260ce6daac714eb2153c0bec7" }
 rand = "0.7.3"
+nom = "7"
+log = "0.4"
+stderrlog = "0.5"
 
 [profile.release]
 lto = "fat"

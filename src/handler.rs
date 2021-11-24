@@ -1,12 +1,11 @@
 use telegram_bot::*;
+use log::{info, warn};
 
-use crate::parser::parse;
-use crate::roll::RollResult;
-use std::panic::catch_unwind;
+use crate::rolls::parse;
 
 const START_MSG: &str = "Let *Dice Goblin* roll for you!
 
-Dice Goblin will roll any-sided dice and perform simple arithmetic to reach a total value, appropriate for many tabletop and RPG games. See /help for details on the commands and syntax available.";
+Dice Goblin will roll any-sided rolls and perform simple arithmetic to reach a total value, appropriate for many tabletop and RPG games. See /help for details on the commands and syntax available.";
 
 const HELP_MSG: &str = "*COMMANDS*
 
@@ -17,7 +16,7 @@ _See introductory information about this bot_
 _See this help output_
 
 /roll `[expression]`
-_Roll the dice and calculate a total (see expression syntax below)_
+_Roll the rolls and calculate a total (see expression syntax below)_
 
 /r `[expression]`
 _Alias for /roll_
@@ -34,7 +33,7 @@ Dice rolls are described in the standard `NdS` format, where `N` is the number o
 Rolls support basic arithmetic using the operators (+, -, \\*, /) as well as parenthesis. Division always truncates (or rounds towards zero), and division by zero always equals zero.
 
 *Examples:*
-`3d10 + 2` - Roll three ten-sided dice and add two to the result
+`3d10 + 2` - Roll three ten-sided rolls and add two to the result
 `(d6 - 1) * 2` - Roll a six-sided die, subtract one from the roll, and then double the result
 `3 / 2` - Equals 1 (1.5 rounded towards zero)
 `1 / 0` - Division by zero always equals zero";
@@ -54,38 +53,47 @@ pub async fn handle(api: &Api, update: Update) -> Result<(), Error> {
         _ => return Ok(()),
     };
 
-    let cmd = match Command::resolve(&txt, &entities) {
+    let cmd = match Command::resolve(txt, entities) {
         Some(c) => c,
         None => return Ok(()),
     };
 
-    match cmd {
+    let res = match cmd {
         Command::Start => {
+            info!("start on {:?}", msg.chat);
             let mut req = SendMessage::new(msg.chat, START_MSG);
             req.parse_mode(ParseMode::Markdown);
             api.send(req).await
         }
 
         Command::Help => {
+            info!("help on {:?}", msg.chat);
             let mut req = SendMessage::new(msg.chat, HELP_MSG);
             req.parse_mode(ParseMode::Markdown);
             api.send(req).await
         }
         Command::Roll(offset) => {
-            let res: Option<RollResult> = parse(&txt[offset..])
-                .and_then(|r| catch_unwind(|| (&r).into()).ok());
-
-            match res {
-                Some(res) => api.send(msg.text_reply(format!("{}", res))).await,
-                None => {
+            match parse(&txt[offset..]) {
+                Ok(r) => {
+                    info!("good roll on {:?}: {}", msg.chat, r);
+                    api.send(msg.text_reply(format!("{} = {}", r.value(), r))).await
+                }
+                Err(_) => {
+                    warn!("bad roll on {:?}: {:?}", msg.chat, &txt[offset..]);
                     let mut req = msg.text_reply(ROLL_ERR_MSG);
                     req.parse_mode(ParseMode::Markdown);
                     api.send(req).await
                 }
             }
         }
-        _ => api.send(msg.text_reply(UNKNOWN_MSG)).await,
-    }.map(|_| ())
+        _ => {
+            warn!("unknown command on {:?}: {:?}", msg.chat, txt);
+            api.send(msg.text_reply(UNKNOWN_MSG)).await
+        }
+    };
+
+    info!("send result: {:?}", res);
+    Ok(())
 }
 
 #[derive(Debug)]
