@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 futures = "0.3"
-tokio = { version = "1.2", features = ["fs", "rt", "macros", "rt-multi-thread"]}
+tokio = { version = "1.16", features = ["fs", "rt", "macros", "rt-multi-thread"]}
 
 telegram-bot = { git = "https://github.com/telegram-rs/telegram-bot", rev = "65ad5cfd578e9a1260ce6daac714eb2153c0bec7" }
 rand = "0.7.3"
