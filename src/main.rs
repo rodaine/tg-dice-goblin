@@ -7,9 +7,6 @@ use grammers_session::Session;
 use log::{error, trace};
 use tokio::{select, task};
 
-#[global_allocator]
-static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
-
 mod handler;
 mod rolls;
 

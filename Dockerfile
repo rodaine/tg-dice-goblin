@@ -1,4 +1,4 @@
-FROM rust:latest as build
+FROM rust:slim-buster as build
 
 COPY ./ ./
 RUN cargo build --release
