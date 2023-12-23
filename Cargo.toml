@@ -5,14 +5,14 @@ authors = ["Chris Roche <github@rodaine.com>"]
 edition = "2021"
 
 [dependencies]
-futures = "0.3"
-tokio = { version = "1.16", features = ["fs", "rt", "macros", "rt-multi-thread"]}
-
-telegram-bot = { git = "https://github.com/telegram-rs/telegram-bot", rev = "65ad5cfd578e9a1260ce6daac714eb2153c0bec7" }
-rand = "0.7.3"
-nom = "7"
-log = "0.4"
-stderrlog = "0.5"
+grammers-client = { git = "https://github.com/Lonami/grammers", features = ["markdown"] }
+grammers-session = { git = "https://github.com/Lonami/grammers" }
+log = "0.4.20"
+nom = "7.1.3"
+rand = "0.8.5"
+simple_logger = "4.3.0"
+tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread", "signal"] }
+tikv-jemallocator = "0.5.4"
 
 [profile.release]
 lto = "fat"
